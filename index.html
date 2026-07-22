@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>이다원 생일 축하 🌹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A96E;
+    --rose: #C9849A;
+    --cream: #F5EBE8;
+    --bg: #130810;
+    --card: #1E0E18;
+    --border: rgba(201,169,110,0.25);
+    --border-h: rgba(201,169,110,0.55);
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  }
+  html, body { min-height: 100vh; background: var(--bg); color: var(--cream); font-family: var(--sans); }
+  input, textarea, button { font-family: var(--sans); }
+  input::placeholder, textarea::placeholder { color: rgba(201,169,110,0.3); }
+  textarea { resize: none; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.2); border-radius: 2px; }
+
+  /* ── 꽃잎 ── */
+  #petals { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .petal { position: absolute; border-radius: 50% 50% 50% 0; pointer-events: none; }
+
+  /* ── 레이아웃 ── */
+  #app {
+    position: relative; z-index: 1;
+    max-width: 560px; margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  #app.visible { opacity: 1; transform: none; }
+
+  /* ── 히어로 ── */
+  .hero { text-align: center; margin-bottom: 2.5rem; }
+  .hero-eyebrow {
+    font-size: 11px; letter-spacing: .22em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 16px; opacity: .7;
+  }
+  .hero-name {
+    font-family: var(--serif);
+    font-size: clamp(2.8rem, 10vw, 4.2rem);
+    font-weight: 700; color: var(--cream);
+    letter-spacing: -.01em; line-height: 1.08;
+    margin-bottom: 8px;
+  }
+  .hero-ornament { display: flex; justify-content: center; margin-bottom: 2px; }
+  .hero-sub {
+    font-size: 13px; color: rgba(245,235,232,.45);
+    margin-top: 14px; letter-spacing: .04em; line-height: 1.8;
+  }
+  .hero-date {
+    font-family: var(--serif);
+    font-size: clamp(.9rem, 3.2vw, 1.1rem);
+    font-weight: 700; color: var(--gold);
+    opacity: .82; margin-top: 14px;
+    letter-spacing: .02em; line-height: 1.85;
+  }
+
+  /* ── 섹션 카드 ── */
+  .section {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .section-label {
+    font-size: 11px; letter-spacing: .14em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 1rem; opacity: .75;
+  }
+
+  /* ── 인풋 ── */
+  .ghost-input {
+    width: 100%;
+    background: rgba(201,169,110,.04);
+    border: .5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px; color: var(--cream);
+    outline: none; line-height: 1.6;
+    transition: border-color .2s;
+    display: block;
+  }
+  .ghost-input:focus { border-color: var(--border-h); }
+  .ghost-input.ta { resize: none; }
+
+  /* ── 버튼 ── */
+  .btn-gold {
+    background: linear-gradient(135deg, #C9A96E, #E8C98A);
+    border: none; border-radius: 12px;
+    padding: 12px 28px;
+    font-size: 14px; font-weight: 600; color: #1A0A12;
+    cursor: pointer; letter-spacing: .06em;
+    transition: all .18s cubic-bezier(.25,.8,.25,1);
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .btn-gold:active { transform: scale(.96); background: linear-gradient(135deg,#A8843A,#C9A96E); }
+  .btn-gold:disabled { background: rgba(201,169,110,.12); color: rgba(201,169,110,.35); cursor: not-allowed; }
+  .btn-ghost {
+    background: none; border: .5px solid var(--border);
+    border-radius: 12px; padding: 10px 20px;
+    font-size: 13px; color: rgba(201,169,110,.6);
+    cursor: pointer; transition: border-color .2s;
+  }
+  .btn-ghost:hover { border-color: var(--border-h); }
+
+  /* ── 메시지 카드 ── */
+  .msg-card {
+    background: var(--card);
+    border: .5px solid var(--border);
+    border-radius: 16px; padding: 1.25rem 1.5rem;
+    transition: all .28s cubic-bezier(.25,.8,.25,1);
+  }
+  .msg-card:hover { background: rgba(40,18,32,.95); border-color: var(--border-h); transform: translateY(-2px); }
+  .msg-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .msg-left { flex: 1; }
+  .msg-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg,rgba(201,132,154,.27),rgba(201,169,110,.27));
+    border: .5px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--gold); font-weight: 600; margin-right: 8px;
+    vertical-align: middle;
+  }
+  .msg-nick { font-size: 13px; font-weight: 600; color: var(--cream); letter-spacing: .03em; }
+  .msg-head { display: flex; align-items: center; margin-bottom: 8px; }
+  .msg-text { font-size: 14px; line-height: 1.75; color: rgba(245,235,232,.85); white-space: pre-wrap; word-break: break-word; }
+  .msg-date { margin-top: 10px; font-size: 11px; color: rgba(201,169,110,.45); letter-spacing: .04em; }
+  .btn-del {
+    background: none; border: .5px solid rgba(180,60,80,.3);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 11px; color: rgba(180,60,80,.7);
+    cursor: pointer; white-space: nowrap; transition: border-color .2s;
+    font-family: var(--sans);
+  }
+  .btn-del:hover { border-color: rgba(180,60,80,.8); }
+  .btn-del-confirm {
+    background: rgba(180,60,80,.15); border: .5px solid rgba(180,60,80,.6);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 11px; color: rgba(230,100,110,.95);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .btn-cancel-del {
+    background: none; border: none;
+    font-size: 11px; color: rgba(201,169,110,.5);
+    cursor: pointer; font-family: var(--sans); margin-top: 4px;
+    display: block;
+  }
+
+  /* ── 안내 ── */
+  .notice {
+    background: rgba(201,169,110,.04);
+    border: .5px solid rgba(201,169,110,.12);
+    border-radius: 14px; padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 12px; color: rgba(245,235,232,.38); line-height: 1.85;
+  }
+
+  /* ── 메시지 목록 헤더 ── */
+  .msg-list-header {
+    font-size: 11px; letter-spacing: .14em; color: var(--gold);
+    text-transform: uppercase; opacity: .7; margin-bottom: 1rem;
+  }
+  .msg-list { display: flex; flex-direction: column; gap: 12px; }
+  .msg-empty {
+    text-align: center; padding: 3rem 0;
+    font-size: 13px; color: rgba(245,235,232,.22); line-height: 2;
+  }
+
+  /* ── 에러 ── */
+  .err { font-size: 12px; color: #E07080; margin-top: 4px; }
+
+  /* ── 관리자 ── */
+  .admin-toggle {
+    background: none; border: none;
+    font-size: 11px; color: rgba(201,169,110,.22);
+    cursor: pointer; letter-spacing: .08em;
+    display: block; margin: 0 auto; padding: 4px 0;
+    font-family: var(--sans);
+  }
+
+  /* ── 공유 ── */
+  .share-box {
+    background: rgba(201,169,110,.05);
+    border: .5px solid var(--border);
+    border-radius: 16px; padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem; text-align: center;
+  }
+  .share-label { font-size: 11px; letter-spacing: .14em; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; opacity: .7; }
+  .share-row {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,.25); border: .5px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 10px;
+  }
+  .share-url {
+    flex: 1; font-size: 12px; color: rgba(245,235,232,.45);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    text-align: left; letter-spacing: .02em;
+  }
+  .btn-copy {
+    flex-shrink: 0;
+    background: linear-gradient(135deg,#C9A96E,#E8C98A);
+    border: none; border-radius: 8px; padding: 6px 14px;
+    font-size: 12px; font-weight: 600; color: #1A0A12;
+    cursor: pointer; letter-spacing: .04em; white-space: nowrap;
+    transition: all .22s; font-family: var(--sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-copy.copied { background: rgba(100,200,140,.15); color: rgba(100,210,150,.9); }
+  .share-hint { font-size: 11px; color: rgba(245,235,232,.25); line-height: 1.7; }
+
+  /* ── 푸터 ── */
+  .footer { text-align: center; margin-top: 2rem; font-size: 10px; color: rgba(201,169,110,.2); letter-spacing: .12em; }
+
+  /* ── 로딩 스피너 ── */
+  .loading { text-align: center; padding: 2rem 0; font-size: 13px; color: rgba(201,169,110,.4); }
+  .flex-col { display: flex; flex-direction: column; gap: 10px; }
+  .flex-row { display: flex; gap: 8px; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+</style>
+</head>
+<body>
+
+<!-- 꽃잎 컨테이너 -->
+<div id="petals"></div>
+
+<div id="app">
+
+  <!-- 히어로 -->
+  <div class="hero">
+    <div class="hero-eyebrow">Birthday Wishes for</div>
+    <h1 class="hero-name">이다원</h1>
+    <div class="hero-ornament">
+      <svg width="180" height="24" viewBox="0 0 180 24">
+        <line x1="0" y1="12" x2="72" y2="12" stroke="#C9A96E" stroke-width="0.5" opacity="0.5"/>
+        <circle cx="78" cy="12" r="2" fill="#C9A96E" opacity="0.6"/>
+        <circle cx="90" cy="12" r="4" fill="none" stroke="#C9A96E" stroke-width="0.8" opacity="0.7"/>
+        <circle cx="90" cy="12" r="1.5" fill="#C9A96E" opacity="0.7"/>
+        <circle cx="102" cy="12" r="2" fill="#C9A96E" opacity="0.6"/>
+        <line x1="108" y1="12" x2="180" y2="12" stroke="#C9A96E" stroke-width="0.5" opacity="0.5"/>
+      </svg>
+    </div>
+    <p class="hero-sub">소중한 다원이에게 따뜻한 생일 축하 메시지를 전해주세요</p>
+    <p class="hero-date">2026년 7월 29일 아름다운 다원양의 탄생일을 축하합니다.</p>
+  </div>
+
+  <!-- 닉네임 섹션 -->
+  <div class="section" id="nick-section">
+    <div class="section-label">나의 닉네임</div>
+    <div id="nick-panel"></div>
+  </div>
+
+  <!-- 메시지 작성 -->
+  <div class="section" id="write-section" style="display:none">
+    <div class="section-label">축하 메시지 작성</div>
+    <div id="write-panel"></div>
+  </div>
+
+  <!-- 안내 문구 -->
+  <div class="notice">
+    이 공간은 다원이의 생일을 축하하는 분들을 위해 열려 있어요. 메시지 내용은 수정되지 않지만,
+    생일 축하와 관계없는 내용이 작성될 경우 관리자에 의해 조용히 삭제될 수 있습니다. 😊
+  </div>
+
+  <!-- 메시지 목록 -->
+  <div id="msg-section">
+    <div class="msg-list-header" id="msg-count">Messages · 0</div>
+    <div id="msg-list"><div class="loading">불러오는 중...</div></div>
+  </div>
+
+  <!-- 관리자 -->
+  <div style="margin-top:1.5rem">
+    <button class="admin-toggle" id="admin-toggle-btn">▼ 관리자</button>
+    <div id="admin-section" style="display:none; margin-top:12px">
+      <div class="section">
+        <div id="admin-panel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 링크 공유 -->
+  <div class="share-box" style="margin-top:1.5rem">
+    <div class="share-label">친구들에게 공유하기</div>
+    <div class="share-row">
+      <span class="share-url" id="share-url-text"></span>
+      <button class="btn-copy" id="copy-btn">링크 복사</button>
+    </div>
+    <p class="share-hint">이 링크를 다원이 친구들에게 공유해주세요</p>
+  </div>
+
+  <div class="footer">HAPPY BIRTHDAY · 이다원 · 2026</div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ════════════════════════════════════════════════════
+//  ⚠️  아래 firebaseConfig를 본인 Firebase 프로젝트 값으로 교체하세요
+//  Firebase Console → 프로젝트 설정 → 내 앱 → firebaseConfig 복사
+// ════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyAywxAMvTQ73ihDUJM4nG-VoQyurh-m8Do",
+  authDomain: "dw-hbd.firebaseapp.com",
+  databaseURL: "https://dw-hbd-default-rtdb.firebaseio.com",
+  projectId: "dw-hbd",
+  storageBucket: "dw-hbd.firebasestorage.app",
+  messagingSenderId: "935665059543",
+  appId: "1:935665059543:web:902451da39db9d66ab9292",
+  measurementId: "G-NBJZLLQF19"
+};
+
+const ADMIN_PW = "dawon2025admin";
+const NICK_KEY = "dawon_nick_v1";
+const NICK_PW_KEY = "dawon_nick_pw_v1";
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const msgsRef = ref(db, "messages");
+
+// ── 상태 ──────────────────────────────────────────
+let nickname = localStorage.getItem(NICK_KEY) || null;
+let isAdmin = false;
+let messages = {};
+let adminOpen = false;
+
+// ── 꽃잎 ──────────────────────────────────────────
+(function initPetals() {
+  const container = document.getElementById("petals");
+  const colors = [
+    "rgba(201,132,154,0.55)","rgba(213,160,178,0.45)",
+    "rgba(201,169,110,0.35)","rgba(245,235,232,0.30)"
+  ];
+  const petals = Array.from({length:18}, (_,i) => {
+    const el = document.createElement("div");
+    el.className = "petal";
+    const size = 6 + Math.random() * 8;
+    el.style.cssText = `width:${size}px;height:${size*1.4}px;background:${colors[i%4]};opacity:${0.3+Math.random()*0.5}`;
+    container.appendChild(el);
+    return {
+      el, x: Math.random()*100, y: Math.random()*100,
+      vy: 0.04+Math.random()*0.06, vx: (Math.random()-.5)*0.04,
+      rot: Math.random()*360, vr: (Math.random()-.5)*0.5
+    };
+  });
+  let last = Date.now();
+  (function tick() {
+    const now = Date.now(), dt = Math.min(now-last, 50); last = now;
+    petals.forEach(p => {
+      p.y += p.vy*dt*0.1; p.x += p.vx*dt*0.1; p.rot += p.vr*dt*0.05;
+      if (p.y > 105) { p.y = -5; p.x = Math.random()*100; }
+      if (p.x < -5) p.x = 105; if (p.x > 105) p.x = -5;
+      p.el.style.left = p.x + "vw";
+      p.el.style.top = p.y + "vh";
+      p.el.style.transform = `rotate(${p.rot}deg)`;
+    });
+    requestAnimationFrame(tick);
+  })();
+})();
+
+// ── 닉네임 패널 ───────────────────────────────────
+function renderNickPanel() {
+  const panel = document.getElementById("nick-panel");
+  if (nickname) {
+    panel.innerHTML = `
+      <div style="text-align:center">
+        <div style="font-size:12px;color:rgba(201,169,110,.55);margin-bottom:4px;letter-spacing:.06em">현재 닉네임</div>
+        <div style="font-size:18px;font-weight:600;color:#F5EBE8;margin-bottom:14px">${escHtml(nickname)}</div>
+        <button class="btn-ghost" id="change-nick-btn">닉네임 변경</button>
+      </div>`;
+    document.getElementById("change-nick-btn").onclick = () => renderChangeNickPanel();
+    document.getElementById("write-section").style.display = "";
+    renderWritePanel();
+  } else {
+    panel.innerHTML = `
+      <div class="flex-col">
+        <div style="font-size:12px;color:rgba(245,235,232,.5);line-height:1.7">다원이가 알아볼 수 있는 닉네임으로 남겨주세요 🌹</div>
+        <input class="ghost-input" id="nick-input" placeholder="닉네임 (예: 대학교 친구 지수)" />
+        <input class="ghost-input" id="pw-input" type="password" placeholder="비밀번호 (나중에 닉네임 변경 시 필요)" />
+        <div id="nick-err" class="err" style="display:none"></div>
+        <button class="btn-gold" id="nick-set-btn">닉네임 설정하기</button>
+      </div>`;
+    document.getElementById("nick-set-btn").onclick = () => {
+      const n = document.getElementById("nick-input").value.trim();
+      const p = document.getElementById("pw-input").value.trim();
+      const errEl = document.getElementById("nick-err");
+      if (!n) { showErr(errEl, "닉네임을 입력해주세요."); return; }
+      if (p.length < 4) { showErr(errEl, "비밀번호를 4자 이상 입력해주세요."); return; }
+      errEl.style.display = "none";
+      localStorage.setItem(NICK_KEY, n);
+      localStorage.setItem(NICK_PW_KEY, p);
+      nickname = n;
+      renderNickPanel();
+    };
+  }
+}
+
+function renderChangeNickPanel() {
+  const panel = document.getElementById("nick-panel");
+  panel.innerHTML = `
+    <div class="flex-col">
+      <input class="ghost-input" id="cp-pw" type="password" placeholder="현재 비밀번호" />
+      <input class="ghost-input" id="cp-new" placeholder="새 닉네임" />
+      <div id="cp-err" class="err" style="display:none"></div>
+      <div class="flex-row">
+        <button class="btn-gold" id="cp-confirm" style="flex:1">변경</button>
+        <button class="btn-ghost" id="cp-cancel" style="flex:1">취소</button>
+      </div>
+    </div>`;
+  document.getElementById("cp-confirm").onclick = () => {
+    const storedPw = localStorage.getItem(NICK_PW_KEY) || "";
+    const pw = document.getElementById("cp-pw").value;
+    const newN = document.getElementById("cp-new").value.trim();
+    const errEl = document.getElementById("cp-err");
+    if (!pw) { showErr(errEl, "현재 비밀번호를 입력해주세요."); return; }
+    if (pw !== storedPw) { showErr(errEl, "비밀번호가 일치하지 않습니다."); return; }
+    if (!newN) { showErr(errEl, "새 닉네임을 입력해주세요."); return; }
+    localStorage.setItem(NICK_KEY, newN);
+    nickname = newN;
+    renderNickPanel();
+  };
+  document.getElementById("cp-cancel").onclick = renderNickPanel;
+}
+
+// ── 메시지 작성 패널 ──────────────────────────────
+function renderWritePanel() {
+  const panel = document.getElementById("write-panel");
+  const MAX = 300;
+  panel.innerHTML = `
+    <div class="flex-col">
+      <textarea class="ghost-input ta" id="msg-text" rows="4" placeholder="${escHtml(nickname)}님의 따뜻한 축하 메시지를 남겨주세요" maxlength="${MAX}"></textarea>
+      <div class="flex-between">
+        <span style="font-size:11px;color:rgba(201,169,110,.4)" id="char-count">0 / ${MAX}</span>
+        <button class="btn-gold" id="msg-send-btn">메시지 남기기</button>
+      </div>
+    </div>`;
+  const ta = document.getElementById("msg-text");
+  const cc = document.getElementById("char-count");
+  ta.oninput = () => { cc.textContent = `${ta.value.length} / ${MAX}`; };
+  document.getElementById("msg-send-btn").onclick = async () => {
+    const text = ta.value.trim();
+    if (!text) return;
+    const btn = document.getElementById("msg-send-btn");
+    btn.disabled = true; btn.textContent = "전송 중...";
+    try {
+      await push(msgsRef, { nick: nickname, text, ts: Date.now() });
+      ta.value = ""; cc.textContent = `0 / ${MAX}`;
+    } catch(e) { alert("메시지 전송에 실패했습니다. 잠시 후 다시 시도해주세요."); }
+    btn.disabled = false; btn.textContent = "메시지 남기기";
+  };
+}
+
+// ── 메시지 목록 렌더 ──────────────────────────────
+function renderMessages() {
+  const list = document.getElementById("msg-list");
+  const countEl = document.getElementById("msg-count");
+  const sorted = Object.entries(messages).sort((a,b) => b[1].ts - a[1].ts);
+  countEl.textContent = `Messages · ${sorted.length}`;
+  if (sorted.length === 0) {
+    list.innerHTML = `<div class="msg-empty">아직 메시지가 없어요<br>첫 번째 축하 메시지를 남겨주세요 🌹</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  sorted.forEach(([id, msg]) => {
+    const card = document.createElement("div");
+    card.className = "msg-card";
+    const date = new Date(msg.ts).toLocaleDateString("ko-KR", {month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    card.innerHTML = `
+      <div class="msg-inner">
+        <div class="msg-left">
+          <div class="msg-head">
+            <span class="msg-avatar">${escHtml(msg.nick[0])}</span>
+            <span class="msg-nick">${escHtml(msg.nick)}</span>
+          </div>
+          <p class="msg-text">${escHtml(msg.text)}</p>
+          <div class="msg-date">${date}</div>
+        </div>
+        ${isAdmin ? `<div class="del-wrap" data-id="${id}">
+          <button class="btn-del" data-id="${id}">삭제</button>
+        </div>` : ""}
+      </div>`;
+    if (isAdmin) {
+      const delBtn = card.querySelector(".btn-del");
+      delBtn.onclick = () => {
+        const wrap = card.querySelector(".del-wrap");
+        wrap.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <button class="btn-del-confirm">삭제 확인</button>
+            <button class="btn-cancel-del">취소</button>
+          </div>`;
+        wrap.querySelector(".btn-del-confirm").onclick = () => remove(ref(db, `messages/${id}`));
+        wrap.querySelector(".btn-cancel-del").onclick = () => renderMessages();
+      };
+    }
+    list.appendChild(card);
+  });
+}
+
+// ── 관리자 패널 ───────────────────────────────────
+function renderAdminPanel() {
+  const panel = document.getElementById("admin-panel");
+  if (isAdmin) {
+    panel.innerHTML = `
+      <div style="text-align:center">
+        <div style="font-size:12px;color:#C9A96E;margin-bottom:10px">관리자 모드 활성화됨</div>
+        <button class="btn-ghost" id="admin-logout">로그아웃</button>
+      </div>`;
+    document.getElementById("admin-logout").onclick = () => {
+      isAdmin = false;
+      adminOpen = false;
+      document.getElementById("admin-section").style.display = "none";
+      document.getElementById("admin-toggle-btn").textContent = "▼ 관리자";
+      renderMessages();
+    };
+  } else {
+    panel.innerHTML = `
+      <div class="flex-col">
+        <input class="ghost-input" id="admin-pw-input" type="password" placeholder="관리자 비밀번호" />
+        <div id="admin-err" class="err" style="display:none"></div>
+        <button class="btn-gold" id="admin-login-btn">관리자 로그인</button>
+      </div>`;
+    document.getElementById("admin-login-btn").onclick = () => {
+      const pw = document.getElementById("admin-pw-input").value;
+      const errEl = document.getElementById("admin-err");
+      if (pw === ADMIN_PW) { isAdmin = true; renderAdminPanel(); renderMessages(); }
+      else showErr(errEl, "비밀번호가 올바르지 않습니다.");
+    };
+  }
+}
+
+// ── 관리자 토글 ───────────────────────────────────
+document.getElementById("admin-toggle-btn").onclick = () => {
+  adminOpen = !adminOpen;
+  document.getElementById("admin-section").style.display = adminOpen ? "" : "none";
+  document.getElementById("admin-toggle-btn").textContent = adminOpen ? "▲ 관리자" : "▼ 관리자";
+  if (adminOpen) renderAdminPanel();
+};
+
+// ── 링크 복사 ─────────────────────────────────────
+const shareUrlEl = document.getElementById("share-url-text");
+const copyBtn = document.getElementById("copy-btn");
+shareUrlEl.textContent = location.href;
+copyBtn.onclick = () => {
+  const url = location.href;
+  function onSuccess() {
+    copyBtn.classList.add("copied");
+    copyBtn.textContent = "✓ 복사됨";
+    setTimeout(() => { copyBtn.classList.remove("copied"); copyBtn.textContent = "링크 복사"; }, 2200);
+  }
+  function fallback() {
+    const el = document.createElement("textarea");
+    el.value = url; el.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0";
+    document.body.appendChild(el); el.focus(); el.select();
+    try { document.execCommand("copy"); onSuccess(); } catch(e) {}
+    document.body.removeChild(el);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(onSuccess).catch(fallback);
+  } else { fallback(); }
+};
+
+// ── Firebase 실시간 수신 ──────────────────────────
+onValue(msgsRef, (snapshot) => {
+  messages = snapshot.val() || {};
+  renderMessages();
+});
+
+// ── 유틸 ──────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function showErr(el, msg) { el.textContent = msg; el.style.display = "block"; }
+
+// ── 초기 렌더 ─────────────────────────────────────
+renderNickPanel();
+setTimeout(() => document.getElementById("app").classList.add("visible"), 80);
+</script>
+
+</body>
+</html>
